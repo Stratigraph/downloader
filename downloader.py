@@ -5,7 +5,8 @@ import os
 import argparse
 
 parser = argparse.ArgumentParser(description='Download GDELT projects data and filter them.')
-parser.add_argument('--geo', type=bool, default=False, help='sum the integers (default: find the max)')
+parser.add_argument('--geo', type=bool, default=False)
+parser.add_argument('--url', type=bool, default=False, help='include url to geo filtering')
 args = parser.parse_args()
 
 os.chdir("./data")
@@ -45,6 +46,9 @@ for file in gdelt_files:
                     result_line = [line[key] for key in GDELT_GEO_FIELDNAMES if len(line[key]) > 0]
 
                     if len(result_line) == required_len:
+                        if args.url and 57 in line:
+                            result_line.append(line[57])
+
                         result_file.write(",".join(result_line) + "\n")
 
     else:
