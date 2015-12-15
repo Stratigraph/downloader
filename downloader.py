@@ -4,26 +4,26 @@ import glob
 import os
 import argparse
 
+# define args
 parser = argparse.ArgumentParser(description='Download GDELT projects data and filter them.')
 parser.add_argument('--geo', type=bool, default=False)
 parser.add_argument('--url', type=bool, default=False, help='include url to geo filtering')
 args = parser.parse_args()
 
 os.chdir("./data")
-subprocess.call("echo '' > result.csv", shell=True)
-GDELT_DATA_ENDPOINT = 'http://data.gdeltproject.org/events/'
-GDELT_GEO_FIELDNAMES = [0, 1, 7, 17, 30, 31, 32, 33, 34, 53, 54]
-response = requests.get(GDELT_DATA_ENDPOINT + 'filesizes')
+subprocess.call("echo '' > result.csv", shell=True)  # erase old result file
+GDELT_DATA_ENDPOINT = 'http://data.gdeltproject.org/events/'  # page with gdelt data index
+GDELT_GEO_FIELDNAMES = [0, 1, 7, 17, 30, 31, 32, 33, 34, 53, 54]  # id's of columns for geo export
+gdelt_files_downloaded = glob.glob("./*")
 gdelt_files = []
 
-for line in str(response.text).splitlines():
+# download and process
+for line in str(requests.get(GDELT_DATA_ENDPOINT + 'filesizes').text).splitlines():
+    if line[1] == 'GDELT.MASTERREDUCEDV2.1979-2013.zip': continue
     gdelt_files.append(line.split(" "))
-
-gdelt_files_downloaded = glob.glob("./*")
 
 for file in gdelt_files:
     filename = file[1]
-    if filename == 'GDELT.MASTERREDUCEDV2.1979-2013.zip': continue
 
     print("start downloading: {}, with size of {} MB".format(filename, int(int(file[0]) / 1000 ** 2)))
 
