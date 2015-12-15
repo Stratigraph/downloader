@@ -5,7 +5,6 @@ import os
 import argparse
 import json
 import time
-import re
 
 # define args
 parser = argparse.ArgumentParser(description='Download GDELT projects data and filter them.')
