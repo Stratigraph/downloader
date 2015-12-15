@@ -60,14 +60,11 @@ for file in gdelt_files:
                 result_line = []
                 for key in GDELT_HEADER:
                     if key < len(line):
-                        if re.search('[a-zA-Z]', line[key]):
-                            result_line.append('"' + line[key] + '"')
-                        else:
-                            result_line.append(line[key])
+                        result_line.append(line[key].lstrip().rstrip())
                     else:
                         result_line.append("")
 
-                result_file.write(",".join(result_line) + "\n")
+                result_file.write(";".join(result_line) + "\n")
 
     subprocess.call("rm %s" % filename, shell=True)
     print(lines)
