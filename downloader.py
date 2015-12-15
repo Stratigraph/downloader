@@ -4,6 +4,8 @@ import glob
 import os
 import argparse
 import json
+import time
+import re
 
 # define args
 parser = argparse.ArgumentParser(description='Download GDELT projects data and filter them.')
@@ -25,7 +27,12 @@ for line in str(requests.get(GDELT_DATA_ENDPOINT + 'filesizes').text).splitlines
     if line[1] == 'GDELT.MASTERREDUCEDV2.1979-2013.zip': continue
     gdelt_files.append(line)
 
+
+gdelt_files.reverse()
 for file in gdelt_files:
+    lines = 0
+    lines_start = time.perf_counter()
+
     filename = file[1]
 
     print("start downloading: {}, with size of {} MB".format(filename, int(int(file[0]) / 1000 ** 2)))
@@ -46,13 +53,23 @@ for file in gdelt_files:
     with open("result.csv", "a") as result_file:
         result_file.write(json.dumps(GDELT_HEADER) + '\n')
         with open(filename) as f:
-            required_len = len(GDELT_HEADER)
-
             for line in f:
+                lines += 1
                 line = line.replace("\n", '').split("\t")
-                result_line = [(line[key] if key < len(line) else '') for key in GDELT_HEADER]
 
-                if len(result_line) == required_len:
-                    result_file.write(",".join(result_line) + "\n")
+                result_line = []
+                for key in GDELT_HEADER:
+                    if key < len(line):
+                        if re.search('[a-zA-Z]', line[key]):
+                            result_line.append('"' + line[key] + '"')
+                        else:
+                            result_line.append(line[key])
+                    else:
+                        result_line.append("")
+
+                result_file.write(",".join(result_line) + "\n")
 
     subprocess.call("rm %s" % filename, shell=True)
+    print(lines)
+    print((time.perf_counter() - lines_start) / (lines / 1000))
+    break
