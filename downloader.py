@@ -14,7 +14,7 @@ parser.add_argument('--url', type=bool, default=True, help='include url to geo f
 args = parser.parse_args()
 
 os.chdir("./data")
-subprocess.call("cat /dev/null > result.csv", shell=True)  # erase old result file
+#subprocess.call("cat /dev/null > result.csv", shell=True)  # erase old result file
 GDELT_DATA_ENDPOINT = 'http://data.gdeltproject.org/events/'  # page with gdelt data index
 GDELT_GEO_FIELDNAMES = [0, 1, 7, 17, 30, 31, 32, 33, 34, 53, 54]  # id's of columns for geo export
 GDELT_HEADER = list(range(0, 58))  # id's of columns for geo export
@@ -54,7 +54,7 @@ def process_file(file):
         GDELT_HEADER = GDELT_GEO_FIELDNAMES
         if args.url: GDELT_HEADER.append(57)
 
-    with open("res_"+str(file[1][:-4]).lower(), "a") as result_file:
+    with open("subresults/res_"+str(file[1][:-4]).lower(), "a") as result_file:
         result_file.write(json.dumps(GDELT_HEADER) + '\n')
         with open(filename) as f:
             for line in f:
@@ -74,5 +74,5 @@ def process_file(file):
     print("time per line", (time.perf_counter() - lines_start) / (lines / 1000))
 
 
-p = multiprocessing.Pool(5)
+p = multiprocessing.Pool(1)
 p.map(process_file, gdelt_files)
