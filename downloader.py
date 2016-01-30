@@ -5,6 +5,7 @@ import os
 import argparse
 import json
 import time
+import multiprocessing
 
 # define args
 parser = argparse.ArgumentParser(description='Download GDELT projects data and filter them.')
@@ -26,18 +27,22 @@ for line in str(requests.get(GDELT_DATA_ENDPOINT + 'filesizes').text).splitlines
     if line[1] == 'GDELT.MASTERREDUCEDV2.1979-2013.zip': continue
     gdelt_files.append(line)
 
-
 gdelt_files.reverse()
-for file in gdelt_files:
+
+
+def process_file(file):
+    global GDELT_GEO_FIELDNAMES, GDELT_GEO_FIELDNAMES, GDELT_HEADER
+
     lines = 0
     lines_start = time.perf_counter()
 
     filename = file[1]
-
+    str(filename[:-4]).lower()
     print("start downloading: {}, with size of {} MB".format(filename, int(int(file[0]) / 1000 ** 2)))
 
     if "./" + filename not in gdelt_files_downloaded:
-        subprocess.call("wget %s" % GDELT_DATA_ENDPOINT + filename, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.call("wget %s" % GDELT_DATA_ENDPOINT + filename, shell=True, stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL)
 
     csv_before = glob.glob("*.csv") + glob.glob("*.CSV")
     subprocess.call("unzip %s" % filename, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -49,7 +54,7 @@ for file in gdelt_files:
         GDELT_HEADER = GDELT_GEO_FIELDNAMES
         if args.url: GDELT_HEADER.append(57)
 
-    with open("result.csv", "a") as result_file:
+    with open("res_"+str(file[1][:-4]).lower(), "a") as result_file:
         result_file.write(json.dumps(GDELT_HEADER) + '\n')
         with open(filename) as f:
             for line in f:
@@ -66,5 +71,8 @@ for file in gdelt_files:
                 result_file.write(";".join(result_line) + "\n")
 
     subprocess.call("rm %s" % filename, shell=True)
-    print(lines)
-    print((time.perf_counter() - lines_start) / (lines / 1000))
+    print("time per line", (time.perf_counter() - lines_start) / (lines / 1000))
+
+
+p = multiprocessing.Pool(5)
+p.map(process_file, gdelt_files)
