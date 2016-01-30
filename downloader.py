@@ -6,6 +6,13 @@ import argparse
 import json
 import time
 import multiprocessing
+import random
+import string
+
+
+def get_id(N=30):
+    return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(N))
+
 
 # define args
 parser = argparse.ArgumentParser(description='Download GDELT projects data and filter them.')
@@ -14,11 +21,10 @@ parser.add_argument('--url', type=bool, default=True, help='include url to geo f
 args = parser.parse_args()
 
 os.chdir("./data")
-#subprocess.call("cat /dev/null > result.csv", shell=True)  # erase old result file
+# subprocess.call("cat /dev/null > result.csv", shell=True)  # erase old result file
 GDELT_DATA_ENDPOINT = 'http://data.gdeltproject.org/events/'  # page with gdelt data index
 GDELT_GEO_FIELDNAMES = [0, 1, 7, 17, 30, 31, 32, 33, 34, 53, 54]  # id's of columns for geo export
 GDELT_HEADER = list(range(0, 58))  # id's of columns for geo export
-gdelt_files_downloaded = glob.glob("./*")
 gdelt_files = []
 
 # download and process
@@ -33,16 +39,15 @@ gdelt_files.reverse()
 def process_file(file):
     global GDELT_GEO_FIELDNAMES, GDELT_GEO_FIELDNAMES, GDELT_HEADER
 
-    lines = 0
-    lines_start = time.perf_counter()
+    process_id = get_id()
 
+    os.mkdir(process_id)
+    os.chdir(process_id)
     filename = file[1]
-    str(filename[:-4]).lower()
     print("start downloading: {}, with size of {} MB".format(filename, int(int(file[0]) / 1000 ** 2)))
 
-    if "./" + filename not in gdelt_files_downloaded:
-        subprocess.call("wget %s" % GDELT_DATA_ENDPOINT + filename, shell=True, stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL)
+    subprocess.call("wget %s" % GDELT_DATA_ENDPOINT + filename, shell=True, stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL)
 
     csv_before = glob.glob("*.csv") + glob.glob("*.CSV")
     subprocess.call("unzip %s" % filename, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -54,11 +59,9 @@ def process_file(file):
         GDELT_HEADER = GDELT_GEO_FIELDNAMES
         if args.url: GDELT_HEADER.append(57)
 
-    with open("subresults/res_"+str(file[1][:-4]).lower(), "a") as result_file:
-        result_file.write(json.dumps(GDELT_HEADER) + '\n')
+    with open("../subresults/res_" + str(file[1][:-4]).lower(), "a") as result_file:
         with open(filename) as f:
             for line in f:
-                lines += 1
                 line = line.replace("\n", '').split("\t")
 
                 result_line = []
@@ -71,8 +74,8 @@ def process_file(file):
                 result_file.write(";".join(result_line) + "\n")
 
     subprocess.call("rm %s" % filename, shell=True)
-    print("time per line", (time.perf_counter() - lines_start) / (lines / 1000))
-
+    os.chdir("../")
+    os.rmdir(process_id)
 
 p = multiprocessing.Pool(1)
 p.map(process_file, gdelt_files)
