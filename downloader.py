@@ -23,7 +23,7 @@ args = parser.parse_args()
 os.chdir("./data")
 # subprocess.call("cat /dev/null > result.csv", shell=True)  # erase old result file
 GDELT_DATA_ENDPOINT = 'http://data.gdeltproject.org/events/'  # page with gdelt data index
-GDELT_GEO_FIELDNAMES = [0, 1, 7, 17, 30, 31, 32, 33, 34, 53, 54]  # id's of columns for geo export
+GDELT_GEO_FIELDNAMES = [0, 1, 7, 17, 30, 31, 32, 33, 34, 53, 54, 57]  # id's of columns for geo export
 GDELT_HEADER = list(range(0, 58))  # id's of columns for geo export
 gdelt_files = []
 
@@ -57,7 +57,6 @@ def process_file(file):
 
     if args.geo:
         GDELT_HEADER = GDELT_GEO_FIELDNAMES
-        if args.url: GDELT_HEADER.append(57)
 
     with open("../subresults/res_" + str(file[1][:-4]).lower(), "a") as result_file:
         with open(filename) as f:
