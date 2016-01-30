@@ -8,8 +8,8 @@ import time
 
 # define args
 parser = argparse.ArgumentParser(description='Download GDELT projects data and filter them.')
-parser.add_argument('--geo', type=bool, default=False)
-parser.add_argument('--url', type=bool, default=False, help='include url to geo filtering')
+parser.add_argument('--geo', type=bool, default=True)
+parser.add_argument('--url', type=bool, default=True, help='include url to geo filtering')
 args = parser.parse_args()
 
 os.chdir("./data")
@@ -68,4 +68,3 @@ for file in gdelt_files:
     subprocess.call("rm %s" % filename, shell=True)
     print(lines)
     print((time.perf_counter() - lines_start) / (lines / 1000))
-    break
